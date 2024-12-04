@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+@layer base {
+    @font-face {
+        font-family: 'Comfortaa-Regular';
+        src: url('../public/assets/fonts/comfortaa/Comfortaa-Regular.ttf');
+    }
+    @font-face {
+        font-family: 'Comfortaa-Bold';
+        src: url('../public/assets/fonts/comfortaa/Comfortaa-Bold.ttf');
+    }
+}
+
+body {
+    font-family: Comfortaa-Regular, sans-serif;
+}
+
+
+
+/*Aqui esta funcionando*/
+
+.your-scroll-container {
+  width: 100%;
+  max-height: 260px; /* Limita a altura do container */
+  overflow-y: auto;  /* Habilita rolagem vertical */
+  overflow-x: hidden; /* Evita rolagem horizontal */
+  padding: 10px; /* Adiciona espaço interno */
+  
+  scrollbar-color: #ccc transparent;
+}
+
+
+ 
+/* Estiliza a barra de rolagem */
+.your-scroll-container::-webkit-scrollbar {
+    width: 8px !important; /* Define a largura da barra de rolagem */
+    height: 20px !important;
+}
+
+/* Estiliza a área de fundo da barra de rolagem */
+.your-scroll-container::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+/* Estiliza o retângulo de rolagem */
+.your-scroll-container::-webkit-scrollbar-thumb {
+    background-color: #888 !important; /* Cor do retângulo de rolagem */
+    border-radius: 10px !important; /* Arredonda as bordas */
+}
+
+/* Opcional: adiciona efeito de hover no retângulo */
+.your-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.your-scroll-container::-webkit-scrollbar-button {
+    display: none !important; /* Esconde os botões das setas */
+}
+
+/*ugeufe*/
+
+.your-scroll-container {
+    width: 100%;
+    max-height: 200px; /* Limita a altura do container */
+    overflow-y: auto; /* Habilita rolagem vertical */
+    overflow-x: hidden; /* Evita rolagem horizontal */
+    padding: 10px; /* Adiciona espaço interno */
+
+    scrollbar-color: #ccc transparent;
+}
