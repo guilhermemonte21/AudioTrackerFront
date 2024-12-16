@@ -2,7 +2,7 @@ import React from 'react'
 import { FaRegFolder } from 'react-icons/fa'
 import { api } from '../../services/apiService'
 
-export const ListPasta = ({nomePasta, DeleteFolder}) => {
+export const ListPasta = ({nomePasta, DeleteFolder, state, setState}) => {
   return (
     <div className='mb-[40px] flex items-center justify-between w-[80%]'>
     <div className='flex flex-row items-center gap-[11px]'>

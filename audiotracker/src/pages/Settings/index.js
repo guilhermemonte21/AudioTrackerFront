@@ -14,13 +14,17 @@ export const Settings = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useContext(UserContext);
 
-  useEffect(() => {
-    GetFolder();
-  }, [folder]);
 
+
+  useEffect(() => {
+    // Buscando pastas
+    GetFolder();
+  }, []);
+
+  // Função para buscar pastas
   const GetFolder = async () => {
     try {
-      const retornoGet = await api.get(`/PastaRef`);
+      const retornoGet = await api.get(`/PastaRef/BuscarPorNomeAutor?nomeAutor=${localStorage.nome}`);
       setFolder(retornoGet.data);
     } catch (error) {
       console.error(error);
@@ -29,6 +33,7 @@ export const Settings = () => {
     }
   };
 
+  // Função para deletar pastas
   const DeleteFolder = async (folderId) => {
     try {
       await api.delete(`/PastaRef/${folderId}`);
@@ -48,7 +53,7 @@ export const Settings = () => {
   return (
     <div className="flex h-screen overflow-hidden">
       <ModalFiles visible={state} setVisible={setState} />
-      <SideBar state={state} setState={setState} />
+      <SideBar state={state} setState={setState} getAllFile={GetFolder} />
       <div className="flex flex-col flex-grow">
         <Header />
         <div className="overflow-y-auto p-8 ml-[180px]">
@@ -73,7 +78,7 @@ export const Settings = () => {
           ) : folder.length === 0 ? (
             <p className='mt-[22px] mb-[22px]'>Nenhuma pasta encontrada</p>
           ) : (
-            folder.map((item) => localStorage.nome === item.autorPasta && (
+            folder.map((item) => (
               <ListPasta
                 key={item.id}
                 nomePasta={item.nomePasta}

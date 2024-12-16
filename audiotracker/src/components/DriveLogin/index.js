@@ -1,126 +1,101 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import useDrivePicker from 'react-google-drive-picker';
 import { api } from '../../services/apiService';
-import { UserContext } from '../../contexts/UserContext';
 
-const DriveLogin = () => {
-  const [pickerApiLoaded, setPickerApiLoaded] = useState(false);
-  const [authToken, setAuthToken] = useState(null);
-  
-  const [file, setFile] = useState(null);
+const DriveLogin = ({ getAllFiles, setVisible }) => {
+  const [loading, setLoading] = useState(false);
+  const CLIENT_ID = process.env.REACT_APP_KEY;
+  const API_KEY = process.env.REACT_APP_API_KEY;
 
-  const { user } = useContext(UserContext);
+  const [openPicker] = useDrivePicker();
 
-  const fetchFileFromDrive = async (fileId) => {
-    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-    });
-    return response.blob(); // Retorna o arquivo como Blob
+  // Função para fechar o modal
+  const handleClose = () => {
+    setVisible();
   };
 
-  //FUNCAO DE POST
-  const registerFilesInDatabase = async (files) => {
+  // POST para registrar os arquivos e criar descrições
+  const registerFilesInDatabase = async (file) => {
     try {
-      for (const file of files) {
-       
-        const fileId = file.id;
-        const fileAutor = localStorage.nome;
-        const Url = file.url;
-        const pasta = "Drive";
-       
-        const response = await api.post(`Arquivos/BaixandoDoDrive?fileId=${fileId}&autor=${fileAutor}&pastaNome=${pasta}&path=${Url}`);
+      setLoading(true);
+
+      const fileAutor = localStorage.getItem('nome');
+      const foto = localStorage.getItem('foto');
+      const id = file.id;
+
+      const response = await api.post(
+        `Arquivos/DrivePasta?folderId=${id}&autor=${fileAutor}&foto=${foto}`
+      );
+      getAllFiles()
+
+      const resultados = response.data.resultados || [];
+      console.log('Arquivos registrados:', resultados);
+
+      // Criar descrições para cada arquivo
+      for (const element of resultados) {
+        try {
+          await api.post(`/Descricao?arquivoId=${element.arquivoId}`);
+          getAllFiles()
+        } catch (error) {
+          console.error(`Erro ao criar descrição para o arquivo ${element.arquivoId}:`, error);
+        }
       }
+
+      // Atualizar a lista de arquivos
+      getAllFiles();
     } catch (error) {
-      console.error('Erro ao enviar o arquivo:', error.response?.data || error.message);
+      console.error('Erro ao registrar o arquivo:', error.response?.data || error.message);
+    } finally {
+      setLoading(false);
+      handleClose(); // Fecha o modal após a operação
     }
   };
-  
-  const CLIENT_ID = process.env.REACT_APP_KEY;
-  
-  const API_KEY = process.env.REACT_APP_API_KEY;
-  const SCOPE = ['https://www.googleapis.com/auth/drive.file'];
 
-
-  const onPickerApiLoad = () => {
-    setPickerApiLoaded(true);
-  };
-
-  // const handleAuthResult = (authResult) => {
-  //   if (authResult && !authResult.error) {
-  //     setAuthToken(authResult.access_token);
-  //   } else {
-  //     console.error('Erro na autenticação:', authResult.error);
-  //   }
-  // };
-
-  
-
-  const [openPicker, authResponse] = useDrivePicker(); 
+  // Abrir o seletor do Google Drive
   const handleOpenPicker = () => {
     openPicker({
       clientId: CLIENT_ID,
       developerKey: API_KEY,
-      viewId: "DOCS",
-      token: localStorage.getItem('token'), 
+      viewId: 'FOLDERS',
+      token: localStorage.getItem('token'),
       showUploadView: true,
       showUploadFolders: true,
       supportDrives: true,
       multiselect: true,
       setSelectFolderEnabled: true,
-      // customViews: customViewsArray, // custom view
       callbackFunction: (data) => {
-
-        //O QUE EU ADICIONEI!!!
         if (data.action === 'picked') {
-          const files = data.docs.map((file) => ({
-            id: file.id,
-            name: file.name,
-            mimeType: file.mimeType,
-            url: `https://drive.google.com/uc?id=${file.id}`,
-            size: file.sizeBytes,
-          }));
-
-          // Chamar o backend
-          if(files.length >0 ){
-            registerFilesInDatabase(files);
-            // fetch('https://drive.google.com/u/1/uc?id=<uniqueId>&export=download', {
-            //   method: 'POST',
-            //   headers: {
-            //     authorization: process.env.REACT_APP_API_KEY
-            //   },
-            // }).then(response=> console.log(response.json()))
-       
-          }
+          console.log('Arquivos selecionados:', data.docs);
+          // Processar cada arquivo/pasta selecionado
+          data.docs.forEach(registerFilesInDatabase);
+        } else if (data.action === 'cancel') {
+          console.log('Seleção cancelada pelo usuário.');
+          handleClose(); // Fecha o modal se o usuário cancelar
         }
-          //TERMINA AQUI!!!
-
-        else if (data.action === 'cancel') {
-          console.log('User clicked cancel/close button')
-        }
-        console.log(data)
       },
-    })
-  }
+    });
+  };
 
-  
-
-   
-    
   return (
-    
-// Input Picker
-<button
-          type="file"
-          id={`google-picker`}
-          hidden={true}
-          onClick={handleOpenPicker}
-          onChange={e => setFile(e.target.files)}
-          multiple={true}
-      />
-  );
+    <div className="flex align-center">
+      {loading ? (
+        'Carregando...'
+      ) : (
+        <button
+          onClick={() => {
+            handleOpenPicker()
+            setVisible()
+          }}
+          style={{ opacity: loading ? 0.6 : 1 }}
+          id="google-picker"
+        >
+        </button>
+      )}
 
+      {/* Spinner Condicional */}
+      {loading && <div className="spinner"></div>}
+    </div>
+  );
 };
 
 export default DriveLogin;

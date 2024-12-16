@@ -11,25 +11,19 @@ import { ModalFiles } from "../../components/Modal";
 import { api } from "../../services/apiService";
 import WaveSurfer from "wavesurfer.js";
 import Hover from "wavesurfer.js/dist/plugins/hover.esm";
+import { useLocation } from 'react-router-dom';
 
 export function VisualizarAudio() {
+    const location = useLocation();
+    const arquivo = location.state?.arquivo || {};
+    const searchTb = location.state?.searchTb || "";
     const { path } = useParams();
-    const [data, setData] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [duration, setDuration] = useState("00:00");
     const [currentTime, setCurrentTime] = useState("00:00");
-    const [search, setSearch] = useState("");
+    const [search, setSearch] = useState(searchTb   );
     const [state, setState] = useState(false);
     const [wavesurfer, setWavesurfer] = useState(null);
-
-    const getFile = async () => {
-        try {
-            const response = await api.get(`/Arquivos/${path}`);
-            setData(response.data);
-        } catch (error) {
-            console.error("Erro ao buscar arquivo:", error);
-        }
-    };
 
     const initializeWaveSurfer = (containerId, audioUrl) => {
         const ws = WaveSurfer.create({
@@ -70,13 +64,8 @@ export function VisualizarAudio() {
     };
 
     useEffect(() => {
-        setSearch(localStorage.getItem(`search`));
-        getFile();
-    }, []);
-
-    useEffect(() => {
-        if (data && data.path) {
-            initializeWaveSurfer("play-container", data.path);
+        if (arquivo && arquivo.path) {
+            initializeWaveSurfer("play-container", arquivo.path);
         }
 
         return () => {
@@ -84,7 +73,7 @@ export function VisualizarAudio() {
                 wavesurfer.destroy();
             }
         };
-    }, [data]);
+    }, [arquivo]);
 
     const handlePlayPause = () => {
         if (wavesurfer) {
@@ -99,51 +88,55 @@ export function VisualizarAudio() {
         }
     }, [currentTime]);
 
-    return (
-        data && (
-            <ContainerMain>
-                <ModalFiles visible={state} setVisible={setState} />
-                <SideBar state={state} setState={setState} />
-                <ContainerSection>
-                    <Header />
-                    <GridLayout className={`mt-10`}>
-                        <Search className={`self-center`} search={search} setSearch={setSearch} />
-                        <Player
-                            onReady={() => { }}
-                            status={isPlaying}
-                            time={currentTime}
-                            duration={duration}
-                            onClick={handlePlayPause}
-                            path={data.path}
-                        />
-                        <div className="w-full h-[300px] overflow-auto">
-                            {Object.entries(data.descricao.text)
-                                .filter(([key, value]) =>
-                                    value.toLowerCase().includes(search.toLowerCase())
-                                )
-                                .map(([key, value], i) => (
-                                    <Timestamp
-                                        key={i}
-                                        obj={{ key, value }}
-                                        search={search}
-                                        onClick={() => {
-                                            const timeParts = key.split(":").map(Number);
-                                            const seconds =
-                                                timeParts[0] * 3600 + timeParts[1] * 60 + timeParts[2];
-                                            if (wavesurfer) {
-                                                wavesurfer.setTime(seconds);
+    useEffect(() => {
+        if (searchTb != null) {
+            setSearch(searchTb)
+        }
+    }, [])
 
-                                                if (!isPlaying) wavesurfer.play();
-                                                setIsPlaying(true);
-                                            }
-                                            setCurrentTime(formatDuration(seconds));
-                                        }}
-                                    />
-                                ))}
-                        </div>
-                    </GridLayout>
-                </ContainerSection>
-            </ContainerMain>
-        )
-    );
+    return arquivo && (
+        <ContainerMain>
+            <ModalFiles visible={state} setVisible={setState} />
+            <SideBar state={state} setState={setState} />
+            <ContainerSection>
+                <Header />
+                <GridLayout className={`mt-10`}>
+                    <Search className={`self-center`} search={search} setSearch={setSearch} />
+                    <Player
+                        onReady={() => { }}
+                        status={isPlaying}
+                        time={currentTime}
+                        duration={duration}
+                        onClick={handlePlayPause}
+                        path={arquivo.path}
+                    />
+                    <div className="w-full h-[300px] overflow-auto">
+                        {Object.entries(arquivo.text.text)
+                            .filter(([key, value]) =>
+                                value.toLowerCase().includes(search.toLowerCase())
+                            )
+                            .map(([key, value], i) => (
+                                <Timestamp
+                                    key={i}
+                                    obj={{ key, value }}
+                                    search={search}
+                                    onClick={() => {
+                                        const timeParts = key.split(":").map(Number);
+                                        const seconds =
+                                            timeParts[0] * 3600 + timeParts[1] * 60 + timeParts[2];
+                                        if (wavesurfer) {
+                                            wavesurfer.setTime(seconds);
+
+                                            if (!isPlaying) wavesurfer.play();
+                                            setIsPlaying(true);
+                                        }
+                                        setCurrentTime(formatDuration(seconds));
+                                    }}
+                                />
+                            ))}
+                    </div>
+                </GridLayout>
+            </ContainerSection>
+        </ContainerMain>
+    )
 }

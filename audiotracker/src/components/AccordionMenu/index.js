@@ -1,58 +1,101 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaChevronDown, FaChevronUp, FaRegFolder } from 'react-icons/fa';
-import ListPasta from '../ListPasta';
+import { api } from '../../services/apiService';
 
-function AccordionMenu({folder ,DeleteFolder}) {
-    const [isOpen, setIsOpen] = useState(false); // Estado para controlar a abertura/fechamento
-    const [selectedOption, setSelectedOption] = useState(''); // Estado para armazenar a opção selecionada
+const AccordionMenu = ({ folder }) => {
+    const [sharedFolders, setSharedFolders] = useState([]);
+    const [pastaData, setPastaData] = useState([]); 
+    const [openMenus, setOpenMenus] = useState({}); 
+    const [userList, setUserList] = useState({}); 
 
-    const toggleMenu = () => {
-        setIsOpen(!isOpen);  // Alterna entre aberto e fechado
+    const fetchSharedFolders = async () => {
+        if (folder && folder.length > 0) {
+            try {
+                const responses = await Promise.all(
+                    folder.map(element => api.get(`Compartilhar?idPasta=${element.id}`))
+                );
+
+                const allSharedFolders = responses.flatMap(response => response.data);
+                setSharedFolders(allSharedFolders);
+            } catch (error) {
+                console.error("Erro ao buscar pastas compartilhadas:", error);
+            }
+        }
     };
 
-    const handleOptionClick = (option) => {
-        setSelectedOption(option); // Atualiza a opção selecionada
-        setIsOpen(false);           // Fecha o menu após seleção
+    // Buscar os dados das pastas
+    const fetchPastaData = async () => {
+        try {
+            const response = await api.get('PastaRef');
+            setPastaData(response.data);
+        } catch (error) {
+            console.error("Erro ao buscar dados das pastas:", error);
+        }
     };
 
-    return (
-        <div className="mb-[40px] flex flex-col items-start gap-[10px]">
-            <div className='flex flex-row items-center gap-[5px] mb-[10px]'>
-                <div className="border-solid border-2 border-[#258b2e] rounded-[100px] w-[45px] h-[45px]"></div>
-                <h1>Matheus Lima</h1>
-                {/* Botão de alternância da seta */}
-                <button
-                    onClick={toggleMenu}
-                    className="flex items-center gap-[5px] p-2 rounded-md"
-                >
-                    <span>{isOpen ? <FaChevronUp /> : <FaChevronDown />}</span>
-                </button>
-            </div>
-            <div className='pl-[10px] w-[100%]'>
-            {/* Conteúdo do menu */}
-            {isOpen && (
-              
-                <div className='flex flex-row items-center gap-[11px]'>
-                    <FaRegFolder style={{
-                    width:29,
-                    height:29,
-                    color:'#D8A353'
-                     }}/>
-      
-      <h1 className='text-[18px]'>Dados</h1>
-    </div>
-              ) }
-            </div>
+    const fetchUser = async (userName) => {
+        try {
+            await api.get('Usuario').then(response => setUserList(response.data.find(user => user.nome === userName)));
+        } catch (error) {
+            console.error("Erro ao buscar dados das pastas:", error);
+        }
+    };
 
+    useEffect(() => {
 
-            {/* Exibe a opção selecionada
-            {selectedOption && (
-                <div className="mt-2 p-2 border-2 border-[#258b2e] rounded-md">
-                    <span>Selecionado: {selectedOption}</span>
-                </div>
-            )} */}
+        fetchSharedFolders();
+        fetchPastaData();
+
+    }, [folder]);
+
+    const toggleMenu = (id) => {
+        setOpenMenus((prevState) => ({
+            ...prevState,
+            [id]: !prevState[id],
+        }));
+    };
+    return userList && (
+        <div className="accordion-menu">
+            {sharedFolders.map((sharedFolder) => {
+                const folderDetails = pastaData.find(pasta => pasta.id === sharedFolder.pastaRefId);
+                fetchUser(sharedFolder.autorNome)
+
+                return folderDetails ? (
+                    <div key={sharedFolder.id} className="">
+                        {/* Cabeçalho com nome do autor e botão para expandir */}
+                        <div
+                            className="flex justify-between items-center cursor-pointer mb-2"
+                            onClick={() => toggleMenu(sharedFolder.id)}
+                        >
+                            <div className="flex flex-row items-center gap-[11px]">
+                                <img
+                                    src={userList.foto}
+                                    alt={sharedFolder.autorNome}
+                                    className="w-[45px] rounded-full"
+                                />
+                                <h1 className="text-[18px]">{sharedFolder.autorNome}</h1>
+                                {openMenus[sharedFolder.id] ? <FaChevronUp /> : <FaChevronDown />}
+                            </div>
+                        </div>
+
+                        {/* Submenu com arquivos internos */}
+                        {openMenus[sharedFolder.id] && (
+                            <div className="pl-[30px] flex items-end gap-5">
+                                <FaRegFolder
+                                    style={{
+                                        width: 29,
+                                        height: 29,
+                                        color: "#D8A353",
+                                    }}
+                                />
+                                <h2 className="text-[18px]">{folderDetails.nomePasta}</h2>
+                            </div>
+                        )}
+                    </div>
+                ) : null;
+            })}
         </div>
     );
-}
+};
 
 export default AccordionMenu;

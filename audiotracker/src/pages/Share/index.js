@@ -5,9 +5,6 @@ import {useEffect, useState} from "react";
 import { Modal, ModalFiles } from "../../components/Modal";
 
 export function Share() {
-
-    
-
     useEffect(() => {
         setModalIsOpen(true)
     }, [])
