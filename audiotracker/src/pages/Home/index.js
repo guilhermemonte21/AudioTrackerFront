@@ -11,8 +11,6 @@ export function Home() {
   const [pastaRefData, setPastaRefData] = useState([]);
   const [indexData, setIndexData] = useState(null);
   const [search, setSearch] = useState("");
-  
-  console.log(localStorage)
 
   const fetchData = async () => {
     try {
@@ -75,7 +73,7 @@ export function Home() {
             <Table
               search={search}
               data={
-                pastaRefData.length > 0 && indexData !== null 
+                pastaRefData.length > 0 && indexData !== null
                   ? pastaRefData[indexData].arquivos // Arquivos da pasta selecionada
                   : pastaRefData.flatMap((pasta) => pasta.arquivos) // Todos os arquivos
               }

@@ -109,7 +109,7 @@ export const Modal = () => {
 
         <hr
           style={{ borderColor: "#F0F0F0" }}
-          className="w-[529px]"
+          className="w-[90%] my-8"
         />
 
         <div
@@ -120,85 +120,90 @@ export const Modal = () => {
           }}
         >
           {!showFriendsFolder
-            ? searchByData(folder, `folder`).map(
-              (item, index) =>
-                localStorage.getItem(`nome`) === item.autorPasta && (
-                  <div
-                    key={index}
-                    id="box-pastas"
-                    className={`w-[90%] flex justify-between items-center mb-3`}
-                  >
-                    <div className="flex gap-5 items-end">
-                      <FaRegFolder
-                        style={{
-                          width: 29,
-                          height: 29,
-                          color: "#D8A353",
-                        }}
-                      />
-                      <label htmlFor={`check-pasta-${index}`}>
-                        {item.nomePasta}
-                      </label>
-                    </div>
-                    <input
-                      className="w-5 h-5 border-2 border-gray-500 rounded-md bg-white checked:bg-blue-500 checked:border-blue-500 focus:outline-none transition-all duration-200"
-                      type="checkbox"
-                      id={`check-pasta-${index}`}
-                      onClick={(e) => {
-                        const res = sharedFolders.find((x) => x === item.id);
+            ? (
+              searchByData(folder, `folder`).length > 0
+                ? searchByData(folder, `folder`).map(
+                  (item, index) =>
+                    localStorage.getItem(`nome`) === item.autorPasta && (
+                      <div
+                        key={index}
+                        id="box-pastas"
+                        className={`w-[90%] flex justify-between items-center mb-3`}
+                      >
+                        <div className="flex gap-5 items-end">
+                          <FaRegFolder
+                            style={{
+                              width: 29,
+                              height: 29,
+                              color: "#D8A353",
+                            }}
+                          />
+                          <label htmlFor={`check-pasta-${index}`}>
+                            {item.nomePasta}
+                          </label>
+                        </div>
+                        <input
+                          className="w-5 h-5 border-2 border-gray-500 rounded-md bg-white checked:bg-blue-500 checked:border-blue-500 focus:outline-none transition-all duration-200"
+                          type="checkbox"
+                          id={`check-pasta-${index}`}
+                          onClick={(e) => {
+                            const res = sharedFolders.find((x) => x === item.id);
 
-                        setChecked(!checked);
-                        if (res === undefined) {
-                          sharedFolders.push(item.id);
-                        } else {
-                          sharedFolders.find((x, i) =>
-                            x === item.id ? sharedFolders.splice(i, 1) : null
-                          );
-                        }
-
-
-                      }}
-                    />
-                  </div>
+                            setChecked(!checked);
+                            if (res === undefined) {
+                              sharedFolders.push(item.id);
+                            } else {
+                              sharedFolders.find((x, i) =>
+                                x === item.id ? sharedFolders.splice(i, 1) : null
+                              );
+                            }
+                          }}
+                        />
+                      </div>
+                    )
                 )
+                : <p className="text-gray-500">Nenhuma pasta disponível.</p>
             )
-            : searchByData(users).map(
-              (item, index) =>
+            : (
+              searchByData(users).length > 0
+                ? searchByData(users).map(
+                  (item, index) =>
+                    item.nome !== localStorage.nome && (
+                      <div
+                        key={index}
+                        id="box-users"
+                        className={`w-[90%] flex justify-between items-center`}
+                      >
+                        <div className="flex items-end gap-5">
+                          <img src={item.foto} className="w-10 rounded-[50px]" alt="" />
+                          <label htmlFor={`check-user-${index}`}>{item.nome}</label>
+                        </div>
 
-                item.nome !== localStorage.nome && (
-                  <div
-                    key={index}
-                    id="box-users"
-                    className={`w-[90%] flex justify-between items-center`}
-                  >
-                    <div className="flex items-end gap-5">
-                      <img src={item.foto} className="w-10 rounded-[50px]" alt="" />
-                      <label htmlFor={`check-user-${index}`}>{item.nome}</label>
-                    </div>
+                        <input
+                          className="w-5 h-5 border-2 border-gray-500 rounded-md bg-white checked:bg-blue-500 checked:border-blue-500 focus:outline-none transition-all duration-200"
+                          type="checkbox"
+                          id={`check-user-${index}`}
+                          checked={
+                            sharedUsers.find((x) => x === item.nome) !== undefined
+                          }
+                          onClick={(e) => {
+                            const res = sharedUsers.find((x) => x === item.nome);
 
-                    <input
-                      className="w-5 h-5 border-2 border-gray-500 rounded-md bg-white checked:bg-blue-500 checked:border-blue-500 focus:outline-none transition-all duration-200"
-                      type="checkbox"
-                      id={`check-user-${index}`}
-                      checked={
-                        sharedUsers.find((x) => x === item.nome) !== undefined
-                      }
-                      onClick={(e) => {
-                        const res = sharedUsers.find((x) => x === item.nome);
+                            setChecked(!checked);
 
-                        setChecked(!checked);
-
-                        if (res === undefined) {
-                          sharedUsers.push(item.nome);
-                        } else {
-                          sharedUsers.find((x, i) =>
-                            x === item.nome ? sharedUsers.splice(i, 1) : null
-                          );
-                        }
-                      }}
-                    />
-                  </div>
+                            if (res === undefined) {
+                              sharedUsers.push(item.nome);
+                            } else {
+                              sharedUsers.find((x, i) =>
+                                x === item.nome ? sharedUsers.splice(i, 1) : null
+                              );
+                            }
+                          }}
+                        />
+                      </div>
+                    )
                 )
+                : <p className="text-gray-500">Nenhum usuário disponível.</p>
             )}
         </div>
 
@@ -207,6 +212,7 @@ export const Modal = () => {
     </div>
   );
 };
+
 
 export const ModalDownloadStorage = ({ visible, setVisible, setModalFileVisible, getAllFile }) => {
   const [file, setFile] = useState(null);

@@ -13,6 +13,8 @@ const Header = () => {
         setShowComponent(!showComponent);
     };
 
+    console.log(localStorage.foto)
+
     return (
         <div className="flex-shrink-0">
             <div className="max-md:w-[100%] py-2 border-solid border-2 border-[#CFCFCF] items-center sm:justify-end sm:w-[100%] flex flex-row pr-[70px] gap-[18px] mb-[49px] pl-8">

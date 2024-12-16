@@ -35,7 +35,7 @@ export function VisualizarAudio() {
             progressColor: `white`,
             barRadius: 35,
             barWidth: 4,
-            barHeight: 7,
+            barHeight: 1.3,
             autoplay: false,
             plugins: [
                 Hover.create({
